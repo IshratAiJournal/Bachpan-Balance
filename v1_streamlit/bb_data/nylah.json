@@ -1,0 +1,45 @@
+{
+  "name": "Nylah",
+  "age": 5,
+  "weight": 15.5,
+  "height": 100.0,
+  "created": "2025-09-03",
+  "streak": 1,
+  "last_day": "2025-09-03",
+  "xp": 148,
+  "badges": {
+    "hydration": "Legend",
+    "fruit": "Bronze",
+    "protein": "Bronze"
+  },
+  "2025-09-03": {
+    "water": {
+      "glasses": 4,
+      "target": 4
+    },
+    "fruit": {
+      "items": [
+        "Pomegranate"
+      ]
+    },
+    "protein": {
+      "items": [
+        "Egg"
+      ]
+    },
+    "school_work": true,
+    "outdoor": [
+      "Free Play"
+    ],
+    "indoor": [
+      "Craft"
+    ],
+    "exam_prep_min": 30,
+    "screen": {
+      "create": 30,
+      "fun": 10,
+      "limit": 60
+    },
+    "completed": true
+  }
+}
