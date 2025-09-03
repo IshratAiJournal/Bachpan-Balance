@@ -1,6 +1,3 @@
-# Bachpan_Balance
-A Streamlit app to track kids’ daily routines and encourage balanced, productive habits.
-
 # Bachpan Balance
 
 Bachpan Balance is a child daily routine tracker made with Streamlit.  
