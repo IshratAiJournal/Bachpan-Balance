@@ -1,12 +1,34 @@
-# Bachpan Balance
+# 🌟 Bachpan_Balance
 
-Bachpan Balance is a child daily routine tracker made with Streamlit.  
-It helps parents and children keep track of water intake, food, homework, playtime, and sleep.
+A fun and inspiring app for kids to build healthy daily habits – water intake, eating fruits, school work, play, and more. 🎉  
+Encourages children through badges, stars, and positive messages.  
 
-## Run locally
-1. Clone the repo
-2. Install dependencies: `pip install -r requirements.txt`
-3. Run the app: `streamlit run v1_streamlit/app.py`
+## 🚀 Live Demo
+👉 Try it here: [Bachpan_Balance App](https://uckeynygu5fngy8crmjnho.streamlit.app/)
 
-## Live App
-👉 [Click here to try the app](https://share.streamlit.io/your-username/Bachpan-Balance-GH/v1_streamlit/app.py)
+
+## 🏅 Badges
+![Made with Python](https://img.shields.io/badge/Made%20with-Python-blue?logo=python)
+![Streamlit](https://img.shields.io/badge/Powered%20by-Streamlit-red?logo=streamlit)
+![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-brightgreen)
+
+
+## 📸 Screenshots
+
+### Home Page
+![App Screenshot](./screenshots/home.png)
+
+## ✨ Features
+- 🧒 Add child’s name, age, weight, and height
+- 💧 Track daily water intake with fun badges
+- 🍎 Record fruit intake + health benefits
+- 🥚 Track protein foods (veg & non-veg)
+- 📚 School Work & Exam Prep reminders
+- ⚽ Indoor & Outdoor play appreciation
+- 📱 Healthy screen time reminders
+
+## ⚙️ How to Run Locally
+
+1. Clone the repo  
+   ```bash
+   git clone https://github.com/IshratAiJournal/Bachpan-Balance.git
