@@ -1,5 +1,4 @@
-# Bachpan_Balance — Streamlit App (v1)
-# A playful daily balance tracker for kids
+# Bachpan_Balance — Streamlit App (v1.1: Gender + Personal Water Intake)
 # ------------------------------------------------------------
 # How to run locally (after saving this file as app.py):
 # 1) pip install streamlit
@@ -34,6 +33,7 @@ def _user_file(name: str) -> str:
 
 DEFAULT_PROFILE = {
     "name": "",
+    "gender": "",
     "age": None,
     "weight": None,
     "height": None,
@@ -43,21 +43,6 @@ DEFAULT_PROFILE = {
     "xp": 0,
     "badges": {},   # e.g. {"hydration": "Silver"}
 }
-
-# daily data is keyed by ISO date
-# {
-#   "2025-09-03": {
-#       "water": {"glasses": 0, "target": 0},
-#       "fruit": {"items": []},
-#       "protein": {"items": []},
-#       "school_work": False,
-#       "outdoor": [],
-#       "indoor": [],
-#       "exam_prep_min": 0,
-#       "screen": {"create": 0, "fun": 0, "limit": 60},
-#       "completed": False
-#   }
-# }
 
 def load_profile(name: str) -> Dict[str, Any]:
     path = _user_file(name)
@@ -72,12 +57,10 @@ def load_profile(name: str) -> Dict[str, Any]:
     data["created"] = dt.date.today().isoformat()
     return data
 
-
 def save_profile(profile: Dict[str, Any]):
     path = _user_file(profile.get("name", "guest"))
     with open(path, "w", encoding="utf-8") as f:
         json.dump(profile, f, ensure_ascii=False, indent=2)
-
 
 # ---------------------------
 # Content helpers
@@ -108,7 +91,6 @@ INDOOR_OPTIONS = ["Free Play", "Drawing", "Painting", "Chess", "Carom", "Craft"]
 
 BADGE_LADDER = ["Bronze", "Silver", "Gold", "Legend"]
 
-# For sections we award levels based on completion percentage thresholds
 THRESHOLDS = {
     "hydration": [0.25, 0.5, 0.8, 1.0],
 }
@@ -175,23 +157,53 @@ BADGE_TITLES = {
 # ---------------------------
 # Utility logic
 # ---------------------------
+def calculate_water_intake(age: int, gender: str, weight: float, height: float) -> Dict[str, Any]:
+    """
+    Return recommended daily water intake in ml, liters, and glasses.
+    Approach:
+    - Use weight-based estimate (ml_per_kg), then ensure minimums by age/gender.
+    - This is a general guideline — adapt if you have medical advice.
+    """
+    try:
+        weight = float(weight) if weight else 0.0
+    except Exception:
+        weight = 0.0
 
-def ml_per_day(weight_kg: float) -> int:
-    if not weight_kg:
-        return 1200  # safe default
-    # Simple rule of thumb: 30 ml per kg
-    return int(round(weight_kg * 30))
+    # base by weight (ml per kg)
+    # Using 35 ml/kg as a reasonable middle-ground for children
+    if weight > 0:
+        base_ml = weight * 35
+    else:
+        base_ml = 1200  # fallback
 
+    # Minimum recommendations (approximate)
+    if age <= 3:
+        min_ml = 1000  # 1.0 L
+    elif 4 <= age <= 8:
+        min_ml = 1200  # 1.2 L
+    elif 9 <= age <= 13:
+        # small difference by gender
+        min_ml = 1400 if gender.lower() == "girl" else 1600
+    elif 14 <= age <= 18:
+        min_ml = 1800 if gender.lower() == "girl" else 2400
+    else:
+        min_ml = 2000
 
-def glasses_target(weight_kg: float, glass_ml: int = 200) -> int:
-    need = ml_per_day(weight_kg)
-    return max(4, math.ceil(need / glass_ml))  # minimum 4 glasses/day
+    water_ml = max(base_ml, min_ml)
 
+    glass_ml = 250  # definition for glasses
+    glasses = math.ceil(water_ml / glass_ml)
+
+    return {
+        "ml": int(round(water_ml)),
+        "liters": round(water_ml / 1000, 2),
+        "glasses": int(glasses),
+        "glass_ml": int(glass_ml),
+    }
 
 def award_level(progress_ratio: float) -> str:
-    # Return the highest level achieved based on thresholds
     levels = BADGE_LADDER
-    th = THRESHOLDS["hydration"]  # same thresholds concept reused
+    th = THRESHOLDS["hydration"]
     if progress_ratio >= th[3]:
         return levels[3]
     elif progress_ratio >= th[2]:
@@ -201,7 +213,6 @@ def award_level(progress_ratio: float) -> str:
     elif progress_ratio >= th[0]:
         return levels[0]
     return ""
-
 
 def xp_for(action: str) -> int:
     table = {
@@ -217,11 +228,9 @@ def xp_for(action: str) -> int:
     }
     return table.get(action, 1)
 
-
 # ---------------------------
 # UI components
 # ---------------------------
-
 st.title("🧒 Bachpan Balance")
 st.caption("Playful daily habits for strong bodies and bright minds ✨")
 
@@ -238,20 +247,38 @@ if not name.strip():
 
 profile = load_profile(name)
 
-colA, colB, colC = st.columns(3)
-with colA:
-    age = st.number_input("Age (years)", min_value=1, max_value=17, value=profile.get("age") or 8)
-with colB:
+# Input row: Gender, Age
+col1, col2 = st.columns([1,1])
+with col1:
+    # pre-select gender if exists
+    default_gender = profile.get("gender") or "Boy"
+    gender = st.radio("Gender", ["Boy", "Girl", "Other"], index=["Boy","Girl","Other"].index(default_gender) if default_gender in ["Boy","Girl","Other"] else 0)
+with col2:
+    age = st.number_input("Age (years)", min_value=1, max_value=17, value=int(profile.get("age") or 8))
+
+# Next row: weight, height
+col3, col4 = st.columns([1,1])
+with col3:
     weight = st.number_input("Weight (kg)", min_value=10.0, max_value=120.0, value=float(profile.get("weight") or 25.0), step=0.5)
-with colC:
+with col4:
     height = st.number_input("Height (cm)", min_value=70.0, max_value=200.0, value=float(profile.get("height") or 120.0), step=0.5)
 
-profile.update({"age": int(age), "weight": float(weight), "height": float(height)})
+# save basics into profile
+profile.update({
+    "gender": gender,
+    "age": int(age),
+    "weight": float(weight),
+    "height": float(height),
+})
 
-# Prepare today's record
+# Water recommendation using new function
+water_rec = calculate_water_intake(int(age), gender, float(weight), float(height))
+
+# Prepare today's record (keep any existing data)
 TODAY = dt.date.today().isoformat()
-day = profile.get(TODAY) or {
-    "water": {"glasses": 0, "target": glasses_target(weight)},
+existing_day = profile.get(TODAY)
+day = existing_day or {
+    "water": {"glasses": 0, "target_glasses": water_rec["glasses"], "target_ml": water_rec["ml"]},
     "fruit": {"items": []},
     "protein": {"items": []},
     "school_work": False,
@@ -261,6 +288,15 @@ day = profile.get(TODAY) or {
     "screen": {"create": 0, "fun": 0, "limit": parent_limit},
     "completed": False,
 }
+# If existing_day exists but lacks the new fields, ensure they exist
+if "water" not in day:
+    day["water"] = {"glasses": 0, "target_glasses": water_rec["glasses"], "target_ml": water_rec["ml"]}
+else:
+    # update today's targets to current calculation (so they reflect new inputs)
+    day["water"].setdefault("glasses", 0)
+    day["water"]["target_glasses"] = water_rec["glasses"]
+    day["water"]["target_ml"] = water_rec["ml"]
+
 profile[TODAY] = day
 
 st.divider()
@@ -269,20 +305,34 @@ st.divider()
 # Hydration section
 # ---------------------------
 st.subheader("💧 Water Intake")
-col1, col2, col3 = st.columns([1,1,1])
-with col1:
-    st.metric("Target glasses", day["water"]["target"])
-with col2:
-    st.metric("Drank", day["water"]["glasses"])
-with col3:
-    remain = max(0, day["water"]["target"] - day["water"]["glasses"])
-    st.metric("Left", remain)
+
+colA, colB, colC = st.columns(3)
+with colA:
+    st.metric("Target (ml)", day["water"].get("target_ml", water_rec["ml"]))
+with colB:
+    st.metric("Target (liters)", water_rec["liters"])
+with colC:
+    st.metric("Target (glasses)", day["water"].get("target_glasses", water_rec["glasses"]))
+
+st.metric("Glasses Drank", day["water"].get("glasses", 0))
+
+# compute left
+glass_size = water_rec.get("glass_ml", 250)
+drank_ml = day["water"].get("glasses", 0) * glass_size
+left_ml = max(0, day["water"].get("target_ml", water_rec["ml"]) - drank_ml)
+left_glasses = math.ceil(left_ml / glass_size) if left_ml > 0 else 0
+
+colL, colR = st.columns(2)
+with colL:
+    st.metric("Left (ml)", left_ml)
+with colR:
+    st.metric("Left (glasses)", left_glasses)
 
 if st.button("I drank 1 glass"):
-    day["water"]["glasses"] += 1
+    day["water"]["glasses"] = day["water"].get("glasses", 0) + 1
     profile["xp"] += xp_for("water_glass")
 
-progress = min(1.0, day["water"]["glasses"] / max(1, day["water"]["target"]))
+progress = min(1.0, day["water"].get("glasses", 0) / max(1, day["water"].get("target_glasses", water_rec["glasses"])))
 st.progress(progress, text=f"Hydration progress: {int(progress*100)}%")
 
 level = award_level(progress)
@@ -291,7 +341,7 @@ if level:
     st.success(f"🏅 {title} — {line}")
     profile.setdefault("badges", {})["hydration"] = level
 
-st.caption("Tip: Water keeps you cool and strong! Each glass adds XP.")
+st.caption("Tip: Drink water regularly. We show ml + liters + glasses (1 glass = 250 ml).")
 
 st.divider()
 
@@ -312,12 +362,10 @@ if st.button("Add fruit"):
 
 if day["fruit"]["items"]:
     st.write("**Today's fruits:** ", ", ".join(day["fruit"]["items"]))
-    # Show benefit of last fruit
     f = day["fruit"]["items"][-1]
     benefit = FRUIT_BENEFITS.get(f, "Great choice! Fruits give you power.")
     st.info(f"🎉 Awesome! {f} — {benefit}")
 
-# Award fruit badge levels by count
 fruit_count = len(day["fruit"]["items"])  # simple: 1=Bronze, 2=Silver, 3=Gold, 4+=Legend
 if fruit_count >= 1:
     lvl = BADGE_LADDER[min(3, fruit_count-1)]
@@ -366,7 +414,7 @@ st.divider()
 # Outdoor play
 # ---------------------------
 st.subheader("🌞 Outdoor Play")
-outdoor_sel = st.multiselect("What did you play today?", options=OUTDOOR_OPTIONS, default=day["outdoor"]) 
+outdoor_sel = st.multiselect("What did you play today?", options=OUTDOOR_OPTIONS, default=day["outdoor"])
 if st.button("Save outdoor play"):
     day["outdoor"] = outdoor_sel
     if outdoor_sel:
@@ -384,7 +432,7 @@ st.divider()
 # Indoor play
 # ---------------------------
 st.subheader("🏠 Indoor Play")
-indoor_sel = st.multiselect("What did you play/create today?", options=INDOOR_OPTIONS, default=day["indoor"]) 
+indoor_sel = st.multiselect("What did you play/create today?", options=INDOOR_OPTIONS, default=day["indoor"])
 if st.button("Save indoor play"):
     day["indoor"] = indoor_sel
     if indoor_sel:
@@ -460,7 +508,7 @@ other_hits += 1 if day["outdoor"] else 0
 other_hits += 1 if day["indoor"] else 0
 other_hits += 1 if day["exam_prep_min"] >= 10 else 0
 
-hydration_met = day["water"]["glasses"] >= day["water"]["target"]
+hydration_met = day["water"].get("glasses", 0) >= day["water"].get("target_glasses", water_rec["glasses"])
 allow_complete = hydration_met and other_hits >= 2
 
 colp, colq = st.columns([1,1])
