@@ -1,15 +1,15 @@
 {
   "name": "Nylah",
-  "age": 5,
-  "weight": 15.5,
+  "age": 4,
+  "weight": 16.0,
   "height": 100.0,
   "created": "2025-09-03",
   "streak": 1,
-  "last_day": "2025-09-03",
-  "xp": 148,
+  "last_day": "2025-09-06",
+  "xp": 260,
   "badges": {
     "hydration": "Legend",
-    "fruit": "Bronze",
+    "fruit": "Silver",
     "protein": "Bronze"
   },
   "2025-09-03": {
@@ -38,6 +38,39 @@
     "screen": {
       "create": 30,
       "fun": 10,
+      "limit": 60
+    },
+    "completed": true
+  },
+  "gender": "Girl",
+  "2025-09-06": {
+    "water": {
+      "glasses": 6,
+      "target_glasses": 5,
+      "target_ml": 1200
+    },
+    "fruit": {
+      "items": [
+        "Apple",
+        "Guava"
+      ]
+    },
+    "protein": {
+      "items": [
+        "Paneer"
+      ]
+    },
+    "school_work": true,
+    "outdoor": [
+      "Running"
+    ],
+    "indoor": [
+      "Drawing"
+    ],
+    "exam_prep_min": 0,
+    "screen": {
+      "create": 0,
+      "fun": 0,
       "limit": 60
     },
     "completed": true
