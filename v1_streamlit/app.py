@@ -3,28 +3,52 @@
 # Features: All activities, XP, badges, cheerful messages, "Other" options
 # ---------------------------
 
+# ---------------------------
+# Google Sheets Connection (Safe)
+# ---------------------------
 import os
-import json
-import math
-import datetime as dt
-
-import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import streamlit as st
 
-# ---------------------------
-# Google Sheets Connection
-# ---------------------------
 @st.cache_resource
 def connect_to_sheet():
-    scope = ["https://spreadsheets.google.com/feeds",
-             "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name('bachpan-balance-sa.json', scope)
+    """
+    Connect to Google Sheets safely.
+    Looks for a local JSON file with credentials.
+    """
+    # Step 1: Check for environment variable first
+    json_path = os.getenv("BB_SERVICE_ACCOUNT_JSON")  # optional env variable
+    
+    # Step 2: If not set, look for local file
+    if not json_path:
+        json_path = "bachpan-balance-sa.json"
+    
+    if not os.path.exists(json_path):
+        st.error(
+            "⚠️ Google Sheets credentials not found!\n"
+            "Please place your JSON credentials file locally "
+            "or set the environment variable BB_SERVICE_ACCOUNT_JSON."
+        )
+        st.stop()
+
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    
+    creds = ServiceAccountCredentials.from_json_keyfile_name(json_path, scope)
     client = gspread.authorize(creds)
+    
+    # Open your Google Sheet
     sheet = client.open("BachpanBalanceData").sheet1
     return sheet
 
+# ---------------------------
+# Connect to Google Sheets
+# ---------------------------
 sheet = connect_to_sheet()
+
 
 # ---------------------------
 # Data Storage Helpers
